@@ -1,0 +1,616 @@
+{
+  "name": "finish",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1680,
+        -560
+      ],
+      "id": "a3625e6b-acec-45b4-9c64-3cf03bd94e13",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Q0qjFKNPIMRqc9L7",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.From }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "sender_name",
+              "description": "Extract the sender name from the email if the email is not avaliable return a string",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are an expert extraction algorithm.\nOnly extract relevant information from the text.\nIf you do not know the value of an attribute asked to extract, return an empty string as the attribute's value."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        -1520,
+        -464
+      ],
+      "id": "0ea912a6-6e6e-46a5-98c7-65aadc5160de",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        -256
+      ],
+      "id": "1b46cc51-4df9-4960-9bd5-e23d64911385",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "UuBnCqOtV6KM9Cfd",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cc46c0d1-9760-42cb-8c89-3e966e39ac19",
+              "leftValue": "={{ $json.output.sender_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1168,
+        -416
+      ],
+      "id": "1fca7ae1-e9f9-4aa4-8bcc-8828e9a6b879",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82d7be28-e000-49ce-9058-042f3033b4ee",
+              "name": "Introduction",
+              "value": "=Dear,  {{ $json.output.sender_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -912,
+        -432
+      ],
+      "id": "c35362f4-1d32-4fe4-a530-9f7219663536",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1a59543b-4eed-41cb-afa3-6bc8bbe2ee12",
+              "name": "Intro",
+              "value": "Hey,",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -960,
+        -192
+      ],
+      "id": "2e1005ec-0fba-44bc-8018-668a1fcff049",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "introduction",
+        "joinMode": "keepNonMatches",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -720,
+        -272
+      ],
+      "id": "a5919048-c605-471c-bf4b-f3e60a68334d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c02d0a6f-225f-41b2-a530-feede166810c",
+              "name": "Introduction",
+              "value": "=Hey,\n",
+              "type": "string"
+            },
+            {
+              "id": "556652f2-fca4-4952-a99d-36a30fbbac7a",
+              "name": "Email body",
+              "value": "={{ $('Gmail Trigger').item.json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "2da41c31-423c-47b3-8100-fb3497d1a735",
+              "name": "message id",
+              "value": "={{ $('Gmail Trigger').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "11dedda4-ca5d-49a1-beec-42433ad363bf",
+              "name": "thread id",
+              "value": "={{ $('Gmail Trigger').item.json.threadId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -528,
+        -240
+      ],
+      "id": "c8c4603f-7dbf-4f6e-980f-340b242f53b8",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json['Email body'] }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Rejection",
+              "description": "Emails rejecting your job application."
+            },
+            {
+              "category": "Interview",
+              "description": "Emails inviting you for an interview or asking availability."
+            },
+            {
+              "category": "Offer",
+              "description": "Emails containing job offers."
+            },
+            {
+              "category": "Other",
+              "description": "Emails not related to jobs or that don’t fit above."
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "Please classify the email text into one of these categories: {categories}.\n\nOnly respond with the category name, nothing else.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -368,
+        -208
+      ],
+      "id": "9bca939d-1540-46b6-85a5-8efe38dd9b39",
+      "name": "Text Classifier",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aa995480-65b1-4ea5-a079-0b8e842ca2cc",
+              "leftValue": "={{$json[\"category\"]}}",
+              "rightValue": "Rejection",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -400
+      ],
+      "id": "211c8cda-86cb-4d1e-ba0c-96b3423ad683",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c807e508-6e5d-412f-baa8-1758c0abe004",
+              "leftValue": "={{$json[\"category\"]}}",
+              "rightValue": "Interview",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        -192
+      ],
+      "id": "b2d28847-1a92-4104-aedf-384dc6d97742",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5f8427ee-5097-4106-9a3d-95b8e5381578",
+              "leftValue": "={{$json[\"category\"]}}",
+              "rightValue": "Offer",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        96
+      ],
+      "id": "9860d49e-f8db-405c-8972-53e7aed1f36d",
+      "name": "If3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        0,
+        368
+      ],
+      "id": "7e51d502-ce9b-47da-9565-5cda475bca43",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        0
+      ],
+      "id": "e60424af-2467-47f2-8afc-a10e318ac811",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "UuBnCqOtV6KM9Cfd",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "65a38adf-1c7a-4dd4-b5fd-6b128b34c7a0",
+              "name": "category",
+              "value": "Rejection",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -528
+      ],
+      "id": "2afc1ed1-3a16-4ed7-964a-85e54f25a392",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Edit Fields2').item.json['message id'] }}",
+        "message": "Thank you for taking your time to respond. Have a good day.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        288,
+        -560
+      ],
+      "id": "db280cae-ce52-421a-a332-01d332ce1018",
+      "name": "Reply to a message",
+      "webhookId": "c4be7854-89b7-469f-a796-3dc5a8132af1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Q0qjFKNPIMRqc9L7",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        []
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9cdda0fe-83ee-416b-86e8-6d10dedb8551",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "539fb99003df13063c8441dc1c63e165ac96151ce55d43490e5b6322c34be0c0"
+  },
+  "id": "IBNXrnJJwHyni0fR",
+  "tags": []
+}
